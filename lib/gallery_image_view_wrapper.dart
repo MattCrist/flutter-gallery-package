@@ -149,7 +149,7 @@ class _GalleryImageViewWrapperState extends State<GalleryImageViewWrapper> {
       child: GestureDetector(
         onTap: () {
           setState(() {
-            _controller.jumpToPage(item.index);
+            _controller.jumpToPage(item.index ?? 0);
           });
         },
         child: AppCachedNetworkImage(

@@ -7,8 +7,9 @@ import 'gallery_item_thumbnail.dart';
 import './gallery_image_view_wrapper.dart';
 import './util.dart';
 
-class GalleryImage extends StatefulWidget {
-  final List<String> imageUrls;
+class GalleryImage<T extends GalleryItemModel> extends StatefulWidget {
+  final List<T> galleryItems;
+  final ValueChanged<T> galleryItemSelected;
   final String? titleGallery;
   final int numOfShowImages;
   final int crossAxisCount;
@@ -31,8 +32,9 @@ class GalleryImage extends StatefulWidget {
   final bool closeWhenSwipeDown;
 
   const GalleryImage({
-    Key? key,
-    required this.imageUrls,
+    super.key,
+    required this.galleryItems,
+    required this.galleryItemSelected,
     this.titleGallery,
     this.childAspectRatio = 1,
     this.crossAxisCount = 3,
@@ -53,29 +55,38 @@ class GalleryImage extends StatefulWidget {
     this.showAppBar = true,
     this.closeWhenSwipeUp = false,
     this.closeWhenSwipeDown = false,
-  })  : assert(numOfShowImages <= imageUrls.length),
-        super(key: key);
+  });
+
   @override
   State<GalleryImage> createState() => _GalleryImageState();
 }
 
 class _GalleryImageState extends State<GalleryImage> {
   List<GalleryItemModel> galleryItems = <GalleryItemModel>[];
+  int _imagesToShow = 0;
+
   @override
   void initState() {
-    _buildItemsList(widget.imageUrls);
     super.initState();
+
+    for (int i = 0; i < widget.galleryItems.length; i++) {
+      widget.galleryItems[i].index = i;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return galleryItems.isEmpty
-        ? const EmptyWidget()
+    _imagesToShow = (widget.numOfShowImages >= widget.galleryItems.length)
+        ? widget.numOfShowImages
+        : widget.galleryItems.length;
+
+    return widget.galleryItems.isEmpty
+        ? const SizedBox.shrink()
         : GridView.builder(
             primary: false,
-            itemCount: galleryItems.length > 3
-                ? widget.numOfShowImages
-                : galleryItems.length,
+            itemCount: widget.galleryItems.length > 3
+                ? _imagesToShow
+                : widget.galleryItems.length,
             padding: widget.padding,
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               childAspectRatio: widget.childAspectRatio,
@@ -88,9 +99,9 @@ class _GalleryImageState extends State<GalleryImage> {
               return _isLastItem(index)
                   ? _buildImageNumbers(index)
                   : GalleryItemThumbnail(
-                      galleryItem: galleryItems[index],
+                      galleryItem: widget.galleryItems[index],
                       onTap: () {
-                        _openImageFullScreen(index);
+                        widget.galleryItemSelected(widget.galleryItems[index]);
                       },
                       loadingWidget: widget.loadingWidget,
                       errorWidget: widget.errorWidget,
@@ -163,15 +174,5 @@ class _GalleryImageState extends State<GalleryImage> {
         ),
       ),
     );
-  }
-
-// clear and build list
-  void _buildItemsList(List<String> items) {
-    galleryItems.clear();
-    for (var item in items) {
-      galleryItems.add(
-        GalleryItemModel(id: item, imageUrl: item, index: items.indexOf(item)),
-      );
-    }
   }
 }
