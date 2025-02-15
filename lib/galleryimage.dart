@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'gallery_item_model.dart';
 import 'gallery_item_thumbnail.dart';
 import './gallery_image_view_wrapper.dart';
-import './util.dart';
 
 class GalleryImage<T extends GalleryItemModel> extends StatefulWidget {
   final List<T> galleryItems;
@@ -30,6 +29,7 @@ class GalleryImage<T extends GalleryItemModel> extends StatefulWidget {
   final bool showAppBar;
   final bool closeWhenSwipeUp;
   final bool closeWhenSwipeDown;
+  final bool showGalleryImageNameTooltip;
 
   const GalleryImage({
     super.key,
@@ -55,6 +55,7 @@ class GalleryImage<T extends GalleryItemModel> extends StatefulWidget {
     this.showAppBar = true,
     this.closeWhenSwipeUp = false,
     this.closeWhenSwipeDown = false,
+    this.showGalleryImageNameTooltip = false,
   });
 
   @override
@@ -98,14 +99,20 @@ class _GalleryImageState extends State<GalleryImage> {
             itemBuilder: (BuildContext context, int index) {
               return _isLastItem(index)
                   ? _buildImageNumbers(index)
-                  : GalleryItemThumbnail(
-                      galleryItem: widget.galleryItems[index],
-                      onTap: () {
-                        widget.galleryItemSelected(widget.galleryItems[index]);
-                      },
-                      loadingWidget: widget.loadingWidget,
-                      errorWidget: widget.errorWidget,
-                      radius: widget.imageRadius,
+                  : Tooltip(
+                      message: widget.showGalleryImageNameTooltip
+                          ? widget.galleryItems[index].name
+                          : '',
+                      child: GalleryItemThumbnail(
+                        galleryItem: widget.galleryItems[index],
+                        onTap: () {
+                          widget
+                              .galleryItemSelected(widget.galleryItems[index]);
+                        },
+                        loadingWidget: widget.loadingWidget,
+                        errorWidget: widget.errorWidget,
+                        radius: widget.imageRadius,
+                      ),
                     );
             });
   }
@@ -120,12 +127,17 @@ class _GalleryImageState extends State<GalleryImage> {
         alignment: AlignmentDirectional.center,
         fit: StackFit.expand,
         children: <Widget>[
-          GalleryItemThumbnail(
-            galleryItem: galleryItems[index],
-            loadingWidget: widget.loadingWidget,
-            errorWidget: widget.errorWidget,
-            onTap: null,
-            radius: widget.imageRadius,
+          Tooltip(
+            message: widget.showGalleryImageNameTooltip
+                ? widget.galleryItems[index].name
+                : '',
+            child: GalleryItemThumbnail(
+              galleryItem: galleryItems[index],
+              loadingWidget: widget.loadingWidget,
+              errorWidget: widget.errorWidget,
+              onTap: null,
+              radius: widget.imageRadius,
+            ),
           ),
           ClipRRect(
             borderRadius: BorderRadius.all(Radius.circular(widget.imageRadius)),
